@@ -1,43 +1,54 @@
-import React, { useEffect } from "react";
-import api from './services/api'
+import React, { useState, useEffect } from "react";
 
 import "./styles.css";
-import { useState } from 'react';
+
+import api from "./services/api";
 
 function App() {
+
   const [repositories, setRepositories] = useState([]);
 
-  useEffect(() => {
-    api.get('projects').then(response => {
-      setRepositories(response.data);
-    })
-  }, [])
+  const itemData = {
+    "title": "Veio do front",
+    "url": "github.com/devjonathansouzasi/gostack-desafio-conceitos-nodejs",
+    "techs": ["Express"]
+  };
 
   async function handleAddRepository() {
-    // setProjects([...projects, `Novo projeto ${ Date.now()}`]);
-
-    const response = await api.post('projects', {
-      title: `Novo projeto ${Date.now()}`,
-      owner: "Diovane Maia"
-    });
-
-    const project = response.data;
-
-    setRepositories([...repositories, project]);
+    try {
+      const res = await api.post("repositories", itemData);
+      setRepositories([...repositories, res.data]);
+    } catch (error) {
+      console.log(error);
+      return;
+    }
   }
 
   async function handleRemoveRepository(id) {
-    await api.delete(`projects/${id}`);
-
-    const data = repositories.filter(project => project.id !== id)
-    
-    setRepositories(data);
+    try {
+      await api.delete(`repositories/${id}`);
+      const data = repositories.filter(repo => repo.id !== id);
+      setRepositories(data); 
+    } catch (error) {
+      console.log(error);
+      return;
+    }
   }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get("repositories");
+        setRepositories(res.data); 
+      } catch (error) {
+        setRepositories([]);
+      }
+    })();
+  }, []);
 
   return (
     <div>
       <ul data-testid="repository-list">
-
         {repositories.map(repo => 
           <li key={repo.id}>
             {repo.title}
